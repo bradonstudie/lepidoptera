@@ -1,0 +1,9 @@
+package components
+
+templ Flash(msg string, isError bool) {
+	if isError {
+		<p class="flash flash--error">{ msg }</p>
+	} else {
+		<p class="flash flash--ok">{ msg }</p>
+	}
+}
