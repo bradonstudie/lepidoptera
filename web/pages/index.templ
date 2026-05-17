@@ -1,35 +1,40 @@
 package pages
 
-import "github.com/lepidoptera/lepidoptera/web/layouts"
+import (
+	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+	"github.com/lepidoptera/lepidoptera/web/components"
+	"github.com/lepidoptera/lepidoptera/web/layouts"
+)
 
-templ Index(genres []string) {
+templ Index(shows []db.ListPublishedShowsRow, genres []string) {
 	@layouts.Base("upcoming shows") {
 		<section class="shows">
 			<header class="shows__header">
 				<h1>upcoming shows</h1>
-				<div class="shows__filters">
-					<select
-						name="genre"
-						hx-get="/"
-						hx-target="#show-list"
-						hx-swap="innerHTML"
-						hx-trigger="change"
-					>
-						<option value="">all genres</option>
-						for _, g := range genres {
-							<option value={ g }>{ g }</option>
-						}
-					</select>
-				</div>
+				if len(genres) > 0 {
+					<div class="shows__filters">
+						<select
+							name="genre"
+							hx-get="/"
+							hx-target="#show-list"
+							hx-swap="innerHTML"
+							hx-trigger="change"
+						>
+							<option value="">all genres</option>
+							for _, g := range genres {
+								<option value={ g }>{ g }</option>
+							}
+						</select>
+					</div>
+				}
 			</header>
 			<div id="show-list">
-				// shows rendered here, swapped by HTMX on filter
+				@components.ShowList(shows)
 			</div>
 		</section>
 	}
 }
 
-// ShowList is returned as a fragment on HTMX filter requests
-templ ShowList() {
+templ ShowList(shows []db.ListPublishedShowsRow) {
 	<p class="empty">no shows found.</p>
 }

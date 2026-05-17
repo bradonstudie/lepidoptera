@@ -42,7 +42,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/css/styles.css\"><script src=\"/static/js/htmx.min.js\"></script></head><body><header><nav><a href=\"/\" class=\"nav__home\">lepidoptera</a><div class=\"nav__links\"><a href=\"/\">shows</a> <a href=\"/bands\">bands</a> <a href=\"/subscribe\">get on the list</a></div></nav></header><main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/css/styles.css\"><link rel=\"stylesheet\" href=\"https://use.typekit.net/lhn0fpk.css\"><script src=\"/static/js/htmx.min.js\"></script></head><body><header><nav><a href=\"/\" class=\"nav__home\">lepidoptera</a><div class=\"nav__links\"><a href=\"/\">shows</a> <a href=\"/bands\">bands</a> <a href=\"/subscribe\">get on the list</a></div></nav></header><main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

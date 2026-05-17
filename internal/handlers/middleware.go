@@ -5,8 +5,7 @@ import (
 	"os"
 )
 
-// AdminOnly middleware — checks a simple session token for now.
-// Replace with magic link session handling once auth is built out.
+// AdminOnly middleware — checks session token
 func AdminOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("admin_session")

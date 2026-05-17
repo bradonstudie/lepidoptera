@@ -5,16 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
 )
 
 type Worker struct {
 	mailer Mailer
-	db     *pgxpool.Pool
+	db     *db.Queries
 	secret string
 }
 
-func NewWorker(m Mailer, db *pgxpool.Pool, secret string) *Worker {
+func NewWorker(m Mailer, db *db.Queries, secret string) *Worker {
 	return &Worker{mailer: m, db: db, secret: secret}
 }
 

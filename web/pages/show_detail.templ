@@ -1,0 +1,61 @@
+package pages
+
+import (
+	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+	"github.com/lepidoptera/lepidoptera/web/layouts"
+)
+
+templ ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) {
+	@layouts.Base(show.Title) {
+		<article class="show-detail">
+			<header class="show-detail__header">
+				<h1 class="show-detail__title">{ show.Title }</h1>
+				<div class="show-detail__meta">
+					<time>{ show.Date.Format("Monday, January 2 2006 · 3:04pm") }</time>
+					if show.VenueName.Valid {
+						<span class="show-detail__venue">
+							{ show.VenueName.String }
+							if show.VenueCity.Valid {
+								{ " — " + show.VenueCity.String }
+							}
+						</span>
+					}
+				</div>
+			</header>
+			if show.FlyerUrl.Valid {
+				<div class="show-detail__flyer">
+					<img src={ show.FlyerUrl.String } alt={ show.Title + " flyer" }/>
+				</div>
+			}
+			if len(bands) > 0 {
+				<section class="show-detail__bill">
+					<h2>on the bill</h2>
+					for _, band := range bands {
+						<div class="bill-row">
+							<span class="bill-row__name">{ band.Name }</span>
+							if band.Genre.Valid {
+								<span class="bill-row__genre">{ band.Genre.String }</span>
+							}
+							if band.IsHeadliner {
+								<span class="bill-row__headliner">headliner</span>
+							}
+							if band.Description.Valid {
+								<p class="bill-row__description">{ band.Description.String }</p>
+							}
+						</div>
+					}
+				</section>
+			}
+			if show.Description.Valid {
+				<section class="show-detail__description">
+					<p>{ show.Description.String }</p>
+				</section>
+			}
+			if show.TicketUrl.Valid {
+				<div class="show-detail__tickets">
+					<a href={ templ.SafeURL(show.TicketUrl.String) } class="btn">get tickets →</a>
+				</div>
+			}
+		</article>
+	}
+}

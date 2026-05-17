@@ -1,0 +1,28 @@
+package admin
+
+import "github.com/lepidoptera/lepidoptera/web/layouts"
+
+templ Login(message string) {
+  @layouts.Base("admin login") {
+		<section class="login">
+			<h1>admin.</h1>
+			<p>enter your email to receive a login link.</p>
+			<form
+				method="POST"
+				action="/admin/login"
+			>
+				<input
+					type="email"
+					name="email"
+					placeholder="your@email.com"
+					required
+					autofocus
+				/>
+				<button type="submit">send link →</button>
+			</form>
+			if message != "" {
+				<p class="flash flash--ok">{ message }</p>
+			}
+		</section>
+	}
+}

@@ -1,0 +1,36 @@
+package components
+
+import (
+  db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+)
+
+templ ShowCard(show db.ListPublishedShowsRow) {
+	<article class="show-card">
+		<div class="show-card__venue">
+			if show.VenueName.Valid {
+				{ show.VenueName.String }
+			}
+		</div>
+		<div class="show-card__body">
+			<h2 class="show-card__title">
+				<a href={ templ.SafeURL("/shows/" + show.Slug) }>{ show.Title }</a>
+			</h2>
+		</div>
+		<div class="show-card__meta">
+			<time class="show-card__date">{ show.Date.Format("Jan 02 · 3pm") }</time>
+			if show.TicketUrl.Valid {
+				<a href={ templ.SafeURL(show.TicketUrl.String) } class="show-card__tickets">tickets →</a>
+			}
+		</div>
+	</article>
+}
+
+templ ShowList(shows []db.ListPublishedShowsRow) {
+	if len(shows) == 0 {
+		<p class="empty">no shows found</p>
+	} else {
+		for _, show := range shows {
+			@ShowCard(show)
+		}
+	}
+}

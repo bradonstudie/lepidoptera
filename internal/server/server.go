@@ -8,6 +8,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
 	"github.com/lepidoptera/lepidoptera/internal/handlers"
 	"github.com/lepidoptera/lepidoptera/internal/mailer"
 )
@@ -23,7 +25,9 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 		return nil, fmt.Errorf("db connect: %w", err)
 	}
 
-	worker := mailer.NewWorker(m, pool, tokenSecret)
+	sqlDB := stdlib.OpenDBFromPool(pool)
+	queries := db.New(sqlDB)
+	worker := mailer.NewWorker(m, queries, tokenSecret)
 
 	s := &Server{
 		router: chi.NewRouter(),
@@ -38,9 +42,9 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 		http.FileServer(http.Dir("web/static"))))
 
 	// handlers
-	shows := handlers.NewShowHandler(pool)
-	subs := handlers.NewSubscriberHandler(pool, m, tokenSecret)
-	admin := handlers.NewAdminHandler(pool, m)
+	shows := handlers.NewShowHandler(queries)
+	subs := handlers.NewSubscriberHandler(queries, m, tokenSecret)
+	admin := handlers.NewAdminHandler(queries, m, tokenSecret)
 
 	// public routes
 	s.router.Get("/", shows.Index)
@@ -49,6 +53,11 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 	s.router.Post("/subscribe", subs.Subscribe)
 	s.router.Get("/confirm", subs.Confirm)
 	s.router.Get("/unsubscribe", subs.Unsubscribe)
+
+	s.router.Get("/admin/login", admin.LoginPage)
+	s.router.Post("/admin/login", admin.Login)
+	s.router.Post("/admin/logout", admin.Logout)
+	s.router.Get("/admin/verify", admin.Verify)
 
 	// admin routes
 	s.router.Group(func(r chi.Router) {
