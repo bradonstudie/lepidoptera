@@ -2,6 +2,7 @@ package components
 
 import (
   db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+	"github.com/lepidoptera/lepidoptera/internal/timeutil"
 )
 
 templ ShowCard(show db.ListPublishedShowsRow) {
@@ -17,7 +18,7 @@ templ ShowCard(show db.ListPublishedShowsRow) {
 			</h2>
 		</div>
 		<div class="show-card__meta">
-			<time class="show-card__date">{ show.Date.Format("Jan 02 · 3pm") }</time>
+			<time class="show-card__date">{ show.Date.Format(timeutil.DisplayDate) }</time>
 			if show.TicketUrl.Valid {
 				<a href={ templ.SafeURL(show.TicketUrl.String) } class="show-card__tickets">tickets →</a>
 			}

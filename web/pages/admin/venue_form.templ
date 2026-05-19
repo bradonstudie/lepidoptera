@@ -1,0 +1,40 @@
+package admin
+
+import "github.com/lepidoptera/lepidoptera/web/layouts"
+
+templ VenueForm(err string) {
+	@layouts.Base("new venue") {
+		<section class="admin-form">
+			<header class="admin-form__header">
+				<a href="/admin">← back</a>
+				<h1>new venue</h1>
+			</header>
+			if err != "" {
+				<p class="flash flash--error">{ err }</p>
+			}
+			<form method="POST" action="/admin/venues">
+				<div class="form-field">
+					<label for="name">name *</label>
+					<input type="text" id="name" name="name" required/>
+				</div>
+				<div class="form-field">
+					<label for="address">address</label>
+					<input type="text" id="address" name="address"/>
+				</div>
+				<div class="form-field">
+					<label for="city">city</label>
+					<input type="text" id="city" name="city"/>
+				</div>
+				<div class="form-field">
+					<label for="state">state</label>
+					<input type="text" id="state" name="state" maxlength="2"/>
+				</div>
+				<div class="form-field">
+					<label for="capacity">capacity</label>
+					<input type="number" id="capacity" name="capacity"/>
+				</div>
+				<button type="submit">create venue →</button>
+			</form>
+		</section>
+	}
+}

@@ -1,0 +1,36 @@
+package admin
+
+import "github.com/lepidoptera/lepidoptera/web/layouts"
+
+templ BandForm(err string) {
+	@layouts.Base("new band") {
+		<section class="admin-form">
+			<header class="admin-form__header">
+				<a href="/admin">← back</a>
+				<h1>new band</h1>
+			</header>
+			if err != "" {
+				<p class="flash flash--error">{ err }</p>
+			}
+			<form method="POST" action="/admin/bands">
+				<div class="form-field">
+					<label for="name">name *</label>
+					<input type="text" id="name" name="name" required/>
+				</div>
+				<div class="form-field">
+					<label for="genre">genre</label>
+					<input type="text" id="genre" name="genre"/>
+				</div>
+				<div class="form-field">
+					<label for="description">description</label>
+					<textarea id="description" name="description" rows="4"></textarea>
+				</div>
+				<div class="form-field">
+					<label for="website_url">website</label>
+					<input type="url" id="website_url" name="website_url"/>
+				</div>
+				<button type="submit">create band →</button>
+			</form>
+		</section>
+	}
+}

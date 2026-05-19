@@ -1,0 +1,75 @@
+package admin
+
+import (
+	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+	"github.com/lepidoptera/lepidoptera/web/layouts"
+)
+
+templ ShowForm(venues []db.Venue, bands []db.Band, err string) {
+	@layouts.Base("new show") {
+		<section class="admin-form">
+			<header class="admin-form__header">
+				<a href="/admin">← back</a>
+				<h1>new show</h1>
+			</header>
+			if err != "" {
+				<p class="flash flash--error">{ err }</p>
+			}
+			<form method="POST" action="/admin/shows">
+				<div class="form-field">
+					<label for="title">title *</label>
+					<input type="text" id="title" name="title" required/>
+				</div>
+				<div class="form-field">
+					<label for="date">date *</label>
+					<input type="datetime-local" id="date" name="date" required/>
+				</div>
+				<div class="form-field">
+					<label for="venue_id">venue</label>
+					<select id="venue_id" name="venue_id">
+						<option value="">-- select venue --</option>
+						for _, v := range venues {
+							<option value={ v.ID.String() }>{ v.Name }</option>
+						}
+					</select>
+				</div>
+				<div class="form-field">
+					<label>bands</label>
+					<div class="band-checks">
+						for _, b := range bands {
+							<label class="band-check">
+								<input
+									type="checkbox"
+									name="band_ids"
+									value={ b.ID.String() }
+								/>
+								{ b.Name }
+								if b.Genre.Valid {
+									{ " (" + b.Genre.String + ")" }
+								}
+							</label>
+						}
+					</div>
+				</div>
+				<div class="form-field">
+					<label for="headliner_id">headliner</label>
+					<select id="headliner_id" name="headliner_id">
+						<option value="">-- select headliner --</option>
+						for _, b := range bands {
+							<option value={ b.ID.String() }>{ b.Name }</option>
+						}
+					</select>
+				</div>
+				<div class="form-field">
+					<label for="description">description</label>
+					<textarea id="description" name="description" rows="4"></textarea>
+				</div>
+				<div class="form-field">
+					<label for="ticket_url">ticket url</label>
+					<input type="url" id="ticket_url" name="ticket_url"/>
+				</div>
+				<button type="submit">create show →</button>
+			</form>
+		</section>
+	}
+}

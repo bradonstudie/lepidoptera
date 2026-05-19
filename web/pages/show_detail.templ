@@ -3,6 +3,7 @@ package pages
 import (
 	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
 	"github.com/lepidoptera/lepidoptera/web/layouts"
+	"github.com/lepidoptera/lepidoptera/internal/timeutil"
 )
 
 templ ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) {
@@ -11,7 +12,7 @@ templ ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) {
 			<header class="show-detail__header">
 				<h1 class="show-detail__title">{ show.Title }</h1>
 				<div class="show-detail__meta">
-					<time>{ show.Date.Format("Monday, January 2 2006 · 3:04pm") }</time>
+					<time>{ show.Date.Format(timeutil.DisplayFull) }</time>
 					if show.VenueName.Valid {
 						<span class="show-detail__venue">
 							{ show.VenueName.String }

@@ -3,6 +3,8 @@ package mailer
 import (
 	"fmt"
 	"time"
+
+	"github.com/lepidoptera/lepidoptera/internal/timeutil"
 )
 
 const baseURL = "https://lepidoptera.com"
@@ -67,7 +69,7 @@ more info: %s/shows/%s
 unsubscribe: %s/unsubscribe?token=%s`,
 			show.Title,
 			show.Venue,
-			show.Date.Format("Monday January 2 at 3:04pm"),
+			show.Date.Format(timeutil.EmailDate),
 			show.Description,
 			formatBands(show.Bands),
 			formatTicketURL(show.TicketURL),
@@ -89,7 +91,7 @@ more info: %s/shows/%s
 unsubscribe: %s/unsubscribe?token=%s`,
 			show.Title,
 			show.Venue,
-			show.Date.Format("3:04pm"),
+			show.Date.Format(timeutil.DisplayTime),
 			formatTicketURL(show.TicketURL),
 			baseURL, show.Slug,
 			baseURL, unsubToken),
