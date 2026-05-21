@@ -1,60 +1,59 @@
 package pages
 
 import (
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
 	"github.com/lepidoptera/lepidoptera/web/layouts"
-	"github.com/lepidoptera/lepidoptera/internal/timeutil"
 )
 
-templ ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) {
+templ ShowDetail(show viewmodels.ShowDetailViewModel) {
 	@layouts.Base(show.Title) {
 		<article class="show-detail">
 			<header class="show-detail__header">
 				<h1 class="show-detail__title">{ show.Title }</h1>
 				<div class="show-detail__meta">
-					<time>{ show.Date.Format(timeutil.DisplayFull) }</time>
-					if show.VenueName.Valid {
+					<time>{ show.Date }</time>
+					if show.Venue != "" {
 						<span class="show-detail__venue">
-							{ show.VenueName.String }
-							if show.VenueCity.Valid {
-								{ " — " + show.VenueCity.String }
+							{ show.Venue }
+							if show.City != "" {
+								{ " — " + show.City }
 							}
 						</span>
 					}
 				</div>
 			</header>
-			if show.FlyerUrl.Valid {
+			if show.HasFlyer {
 				<div class="show-detail__flyer">
-					<img src={ show.FlyerUrl.String } alt={ show.Title + " flyer" }/>
+					<img src={ show.FlyerURL } alt={ show.Title + " flyer" }/>
 				</div>
 			}
-			if len(bands) > 0 {
+			if len(show.Bands) > 0 {
 				<section class="show-detail__bill">
 					<h2>on the bill</h2>
-					for _, band := range bands {
+					for _, band := range show.Bands {
 						<div class="bill-row">
 							<span class="bill-row__name">{ band.Name }</span>
-							if band.Genre.Valid {
-								<span class="bill-row__genre">{ band.Genre.String }</span>
+							if band.Genre != "" {
+								<span class="bill-row__genre">{ band.Genre }</span>
 							}
 							if band.IsHeadliner {
 								<span class="bill-row__headliner">headliner</span>
 							}
-							if band.Description.Valid {
-								<p class="bill-row__description">{ band.Description.String }</p>
+							if band.Description != "" {
+								<p class="bill-row__description">{ band.Description }</p>
 							}
 						</div>
 					}
 				</section>
 			}
-			if show.Description.Valid {
+			if show.Description != "" {
 				<section class="show-detail__description">
-					<p>{ show.Description.String }</p>
+					<p>{ show.Description }</p>
 				</section>
 			}
-			if show.TicketUrl.Valid {
+			if show.HasTicket {
 				<div class="show-detail__tickets">
-					<a href={ templ.SafeURL(show.TicketUrl.String) } class="btn">get tickets →</a>
+					<a href={ templ.SafeURL(show.TicketURL) } class="btn">get tickets →</a>
 				</div>
 			}
 		</article>

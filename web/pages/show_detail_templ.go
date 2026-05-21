@@ -9,12 +9,11 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
-	"github.com/lepidoptera/lepidoptera/internal/timeutil"
+	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
 	"github.com/lepidoptera/lepidoptera/web/layouts"
 )
 
-func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Component {
+func ShowDetail(show viewmodels.ShowDetailViewModel) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -54,7 +53,7 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(show.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 13, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 12, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -65,9 +64,9 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(show.Date.Format(timeutil.DisplayFull))
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(show.Date)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 15, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 14, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -77,15 +76,15 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if show.VenueName.Valid {
+			if show.Venue != "" {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span class=\"show-detail__venue\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(show.VenueName.String)
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(show.Venue)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 18, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 17, Col: 19}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -95,11 +94,11 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if show.VenueCity.Valid {
+				if show.City != "" {
 					var templ_7745c5c3_Var6 string
-					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(" — " + show.VenueCity.String)
+					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(" — " + show.City)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 20, Col: 41}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 19, Col: 29}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -115,15 +114,15 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if show.FlyerUrl.Valid {
+			if show.HasFlyer {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"show-detail__flyer\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
-				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(show.FlyerUrl.String)
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(show.FlyerURL)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 28, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 27, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 				if templ_7745c5c3_Err != nil {
@@ -136,7 +135,7 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(show.Title + " flyer")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 28, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 27, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 				if templ_7745c5c3_Err != nil {
@@ -147,12 +146,12 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 					return templ_7745c5c3_Err
 				}
 			}
-			if len(bands) > 0 {
+			if len(show.Bands) > 0 {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<section class=\"show-detail__bill\"><h2>on the bill</h2>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				for _, band := range bands {
+				for _, band := range show.Bands {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"bill-row\"><span class=\"bill-row__name\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -160,7 +159,7 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 					var templ_7745c5c3_Var9 string
 					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(band.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 36, Col: 47}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 35, Col: 47}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 					if templ_7745c5c3_Err != nil {
@@ -170,15 +169,15 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					if band.Genre.Valid {
+					if band.Genre != "" {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span class=\"bill-row__genre\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var10 string
-						templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(band.Genre.String)
+						templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(band.Genre)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 38, Col: 57}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 37, Col: 50}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 						if templ_7745c5c3_Err != nil {
@@ -195,15 +194,15 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 							return templ_7745c5c3_Err
 						}
 					}
-					if band.Description.Valid {
+					if band.Description != "" {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<p class=\"bill-row__description\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var11 string
-						templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(band.Description.String)
+						templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(band.Description)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 44, Col: 66}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 43, Col: 59}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 						if templ_7745c5c3_Err != nil {
@@ -224,15 +223,15 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 					return templ_7745c5c3_Err
 				}
 			}
-			if show.Description.Valid {
+			if show.Description != "" {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<section class=\"show-detail__description\"><p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var12 string
-				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(show.Description.String)
+				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(show.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 52, Col: 33}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 51, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -243,15 +242,15 @@ func ShowDetail(show db.GetShowBySlugRow, bands []db.GetBandsByShowRow) templ.Co
 					return templ_7745c5c3_Err
 				}
 			}
-			if show.TicketUrl.Valid {
+			if show.HasTicket {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"show-detail__tickets\"><a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 templ.SafeURL
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(show.TicketUrl.String))
+				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(show.TicketURL))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 57, Col: 51}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/pages/show_detail.templ`, Line: 56, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {

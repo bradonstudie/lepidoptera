@@ -1,34 +1,27 @@
 package components
 
-import (
-  db "github.com/lepidoptera/lepidoptera/internal/db/generated"
-	"github.com/lepidoptera/lepidoptera/internal/timeutil"
-)
+import "github.com/lepidoptera/lepidoptera/internal/viewmodels"
 
-templ ShowCard(show db.ListPublishedShowsRow) {
+templ ShowCard(show viewmodels.ShowListViewModel) {
 	<article class="show-card">
-		<div class="show-card__venue">
-			if show.VenueName.Valid {
-				{ show.VenueName.String }
-			}
-		</div>
+		<div class="show-card__venue">{ show.Venue }</div>
 		<div class="show-card__body">
 			<h2 class="show-card__title">
 				<a href={ templ.SafeURL("/shows/" + show.Slug) }>{ show.Title }</a>
 			</h2>
 		</div>
 		<div class="show-card__meta">
-			<time class="show-card__date">{ show.Date.Format(timeutil.DisplayDate) }</time>
-			if show.TicketUrl.Valid {
-				<a href={ templ.SafeURL(show.TicketUrl.String) } class="show-card__tickets">tickets →</a>
+			<time class="show-card__date">{ show.Date }</time>
+			if show.HasTicket {
+				<a href={ templ.SafeURL(show.TicketURL) } class="show-card__tickets">tickets →</a>
 			}
 		</div>
 	</article>
 }
 
-templ ShowList(shows []db.ListPublishedShowsRow) {
+templ ShowList(shows []viewmodels.ShowListViewModel) {
 	if len(shows) == 0 {
-		<p class="empty">no shows found</p>
+		<p class="empty">no shows found.</p>
 	} else {
 		for _, show := range shows {
 			@ShowCard(show)

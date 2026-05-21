@@ -1,12 +1,12 @@
 package pages
 
 import (
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
 	"github.com/lepidoptera/lepidoptera/web/components"
 	"github.com/lepidoptera/lepidoptera/web/layouts"
 )
 
-templ Index(shows []db.ListPublishedShowsRow, genres []string) {
+templ Index(shows []viewmodels.ShowListViewModel, genres []string) {
 	@layouts.Base("upcoming shows") {
 		<section class="shows">
 			<header class="shows__header">
@@ -33,8 +33,4 @@ templ Index(shows []db.ListPublishedShowsRow, genres []string) {
 			</div>
 		</section>
 	}
-}
-
-templ ShowList(shows []db.ListPublishedShowsRow) {
-	<p class="empty">no shows found.</p>
 }

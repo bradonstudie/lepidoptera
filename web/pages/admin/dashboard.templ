@@ -1,12 +1,11 @@
 package admin
 
 import (
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
 	"github.com/lepidoptera/lepidoptera/web/layouts"
-	"github.com/lepidoptera/lepidoptera/internal/timeutil"
 )
 
-templ Dashboard(shows []db.ListAllShowsRow) {
+templ Dashboard(shows []viewmodels.AdminShowViewModel) {
 	@layouts.Base("admin") {
 		<section class="admin">
 			<header class="admin__header">
@@ -39,22 +38,18 @@ templ Dashboard(shows []db.ListAllShowsRow) {
 							for _, show := range shows {
 								<tr class="admin-table__row">
 									<td>{ show.Title }</td>
-									<td>
-										if show.VenueName.Valid {
-											{ show.VenueName.String }
-										}
-									</td>
-									<td>{ show.Date.Format(timeutil.DisplayDate) }</td>
+									<td>{ show.Venue }</td>
+									<td>{ show.Date }</td>
 									<td>
 										if show.IsPublished {
-											<span class="badge badge--published">published</span>
+											<span class="badge badge--published">{ show.PublishedAt }</span>
 										} else {
 											<span class="badge badge--draft">draft</span>
 										}
 									</td>
 									<td class="admin-table__actions">
 										if !show.IsPublished {
-											<form method="POST" action={ templ.SafeURL("/admin/shows/" + show.ID.String() + "/publish") }>
+											<form method="POST" action={ templ.SafeURL("/admin/shows/" + show.ID + "/publish") }>
 												<button type="submit">publish →</button>
 											</form>
 										}

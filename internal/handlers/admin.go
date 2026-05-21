@@ -15,6 +15,7 @@ import (
 	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
 	"github.com/lepidoptera/lepidoptera/internal/mailer"
 	"github.com/lepidoptera/lepidoptera/internal/timeutil"
+	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
 	adminpages "github.com/lepidoptera/lepidoptera/web/pages/admin"
 )
 
@@ -30,12 +31,13 @@ func NewAdminHandler(queries *db.Queries, m mailer.Mailer, secret string) *Admin
 
 // GET /admin
 func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
-	shows, err := h.queries.ListAllShows(r.Context())
+	rows, err := h.queries.ListAllShows(r.Context())
 	if err != nil {
 		http.Error(w, "error loading shows", http.StatusInternalServerError)
 		return
 	}
 
+	shows := viewmodels.NewAdminShowViewModels(rows)
 	adminpages.Dashboard(shows).Render(r.Context(), w)
 }
 
