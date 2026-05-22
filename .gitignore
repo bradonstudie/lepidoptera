@@ -3,4 +3,4 @@ tmp/
 bin/
 web/static/css/styles.css
 internal/db/generated/
-.vscode/settings.json
+**/.vscode/
