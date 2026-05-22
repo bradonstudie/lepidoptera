@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -44,7 +45,9 @@ func (h *AdminHandler) Login(w http.ResponseWriter, r *http.Request) {
 		token := auth.GenerateLoginToken(email, h.secret)
 		loginEmail := mailer.AdminLoginEmail(token)
 		loginEmail.To = email
-		h.adminService.Mailer().Send(r.Context(), loginEmail)
+		if err := h.adminService.Mailer().Send(r.Context(), loginEmail); err != nil {
+			log.Printf("admin login email failed: %v", err)
+		}
 	}
 
 	adminpages.Login(message).Render(r.Context(), w)

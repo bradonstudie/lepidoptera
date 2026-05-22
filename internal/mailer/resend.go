@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -32,13 +33,13 @@ func (m *ResendMailer) Send(ctx context.Context, email Email) error {
 
 	body, err := json.Marshal(payload)
 	if err != nil {
-		return err
+		return fmt.Errorf("resend marshal: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST",
 		"https://api.resend.com/emails", bytes.NewBuffer(body))
 	if err != nil {
-		return err
+		return fmt.Errorf("resend request: %w", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer "+m.apiKey)
@@ -54,5 +55,6 @@ func (m *ResendMailer) Send(ctx context.Context, email Email) error {
 		return fmt.Errorf("resend: unexpected status %d", resp.StatusCode)
 	}
 
+	log.Printf("mailer: sent '%s' to %s", email.Subject, email.To)
 	return nil
 }
