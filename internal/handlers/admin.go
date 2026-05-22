@@ -64,9 +64,10 @@ func (h *AdminHandler) Login(w http.ResponseWriter, r *http.Request) {
 	adminpages.Login(message).Render(r.Context(), w)
 }
 
-// POST /admin/verify
+// GET /admin/verify?token={token}
 func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
+
 	email, err := auth.ValidateLoginToken(token, h.secret)
 	if err != nil {
 		http.Error(w, "invalid or expired login link", http.StatusUnauthorized)
@@ -74,13 +75,31 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if email != os.Getenv("ADMIN_EMAIL") {
-		http.Error(w, "invalid or expired login link", http.StatusUnauthorized)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
+	// generate a random session token
+	sessionToken, err := auth.GenerateSessionToken()
+	if err != nil {
+		http.Error(w, "error creating session", http.StatusInternalServerError)
+		return
+	}
+
+	// store the hash in the database
+	_, err = h.queries.CreateAdminSession(r.Context(), db.CreateAdminSessionParams{
+		TokenHash: auth.HashSessionToken(sessionToken),
+		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+	})
+	if err != nil {
+		http.Error(w, "error creating session", http.StatusInternalServerError)
+		return
+	}
+
+	// give the raw token to the client
 	http.SetCookie(w, &http.Cookie{
 		Name:     "admin_session",
-		Value:    os.Getenv("ADMIN_SESSION_SECRET"),
+		Value:    sessionToken,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   os.Getenv("ENV") == "production",
@@ -93,6 +112,12 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 
 // POST /admin/logout
 func (h *AdminHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("admin_session")
+	if err == nil {
+		// revoke the session in the database
+		h.queries.RevokeAdminSession(r.Context(), auth.HashSessionToken(cookie.Value))
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "admin_session",
 		Value:    "",

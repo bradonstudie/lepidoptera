@@ -46,6 +46,9 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 	subs := handlers.NewSubscriberHandler(queries, m, tokenSecret)
 	admin := handlers.NewAdminHandler(queries, m, tokenSecret)
 
+	// middleware
+	adminMiddleware := handlers.NewAdminMiddleware(queries)
+
 	// public routes
 	s.router.Get("/", shows.Index)
 	s.router.Get("/shows/{slug}", shows.Detail)
@@ -61,7 +64,7 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 
 	// admin routes
 	s.router.Group(func(r chi.Router) {
-		r.Use(handlers.AdminOnly)
+		r.Use(adminMiddleware.AdminOnly)
 		r.Get("/admin", admin.Dashboard)
 		r.Get("/admin/shows/new", admin.NewShowForm)
 		r.Post("/admin/shows", admin.CreateShow)

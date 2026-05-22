@@ -2,17 +2,36 @@ package handlers
 
 import (
 	"net/http"
-	"os"
+
+	"github.com/lepidoptera/lepidoptera/internal/auth"
+	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
 )
 
-// AdminOnly middleware — checks session token
-func AdminOnly(next http.Handler) http.Handler {
+type AdminMiddleware struct {
+	queries *db.Queries
+}
+
+func NewAdminMiddleware(queries *db.Queries) *AdminMiddleware {
+	return &AdminMiddleware{queries: queries}
+}
+
+func (m *AdminMiddleware) AdminOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("admin_session")
-		if err != nil || cookie.Value != os.Getenv("ADMIN_SESSION_SECRET") {
+		adminSessionCookie, err := r.Cookie("admin_session")
+		if err != nil {
 			http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
 			return
 		}
+
+		// hash the token and look it up in the database
+		tokenHash := auth.HashSessionToken(adminSessionCookie.Value)
+		_, err = m.queries.GetAdminSession(r.Context(), tokenHash)
+		if err != nil {
+			// session not found, expired, or revoked
+			http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

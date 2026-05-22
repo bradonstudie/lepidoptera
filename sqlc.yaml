@@ -2,11 +2,12 @@ version: "2"
 sql:
   - engine: "postgresql"
     queries:
-      - "internal/db/queries/shows"
       - "internal/db/queries/bands"
-      - "internal/db/queries/venues"
-      - "internal/db/queries/subscribers"
       - "internal/db/queries/notifications"
+      - "internal/db/queries/sessions"
+      - "internal/db/queries/shows"
+      - "internal/db/queries/subscribers"
+      - "internal/db/queries/venues"
     schema: "internal/db/migrations"
     gen:
       go:
