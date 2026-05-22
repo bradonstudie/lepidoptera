@@ -3,10 +3,8 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -14,31 +12,19 @@ import (
 	"github.com/lepidoptera/lepidoptera/internal/auth"
 	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
 	"github.com/lepidoptera/lepidoptera/internal/mailer"
+	"github.com/lepidoptera/lepidoptera/internal/service"
 	"github.com/lepidoptera/lepidoptera/internal/timeutil"
-	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
 	adminpages "github.com/lepidoptera/lepidoptera/web/pages/admin"
 )
 
 type AdminHandler struct {
-	queries *db.Queries
-	mailer  mailer.Mailer
-	secret  string
+	adminService *service.AdminService
+	queries      *db.Queries
+	secret       string
 }
 
-func NewAdminHandler(queries *db.Queries, m mailer.Mailer, secret string) *AdminHandler {
-	return &AdminHandler{queries: queries, mailer: m, secret: secret}
-}
-
-// GET /admin
-func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.queries.ListAllShows(r.Context())
-	if err != nil {
-		http.Error(w, "error loading shows", http.StatusInternalServerError)
-		return
-	}
-
-	shows := viewmodels.NewAdminShowViewModels(rows)
-	adminpages.Dashboard(shows).Render(r.Context(), w)
+func NewAdminHandler(adminService *service.AdminService, queries *db.Queries, secret string) *AdminHandler {
+	return &AdminHandler{adminService: adminService, queries: queries, secret: secret}
 }
 
 // GET /admin/login
@@ -51,20 +37,19 @@ func (h *AdminHandler) Login(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	adminEmail := os.Getenv("ADMIN_EMAIL")
 
-	message := "A login link is on its way"
+	message := "if that email is authorized, a login link is on its way."
 
 	if email == adminEmail {
 		token := auth.GenerateLoginToken(email, h.secret)
-		log.Printf("DEBUG login token: /admin/verify?token=%s", token) // TODO: Get this out of here when Resend is configured
 		loginEmail := mailer.AdminLoginEmail(token)
 		loginEmail.To = email
-		h.mailer.Send(r.Context(), loginEmail)
+		h.adminService.Mailer().Send(r.Context(), loginEmail)
 	}
 
 	adminpages.Login(message).Render(r.Context(), w)
 }
 
-// GET /admin/verify?token={token}
+// GET /admin/verify?token=...
 func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
 
@@ -79,14 +64,12 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// generate a random session token
 	sessionToken, err := auth.GenerateSessionToken()
 	if err != nil {
 		http.Error(w, "error creating session", http.StatusInternalServerError)
 		return
 	}
 
-	// store the hash in the database
 	_, err = h.queries.CreateAdminSession(r.Context(), db.CreateAdminSessionParams{
 		TokenHash: auth.HashSessionToken(sessionToken),
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
@@ -96,7 +79,6 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// give the raw token to the client
 	http.SetCookie(w, &http.Cookie{
 		Name:     "admin_session",
 		Value:    sessionToken,
@@ -114,7 +96,6 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("admin_session")
 	if err == nil {
-		// revoke the session in the database
 		h.queries.RevokeAdminSession(r.Context(), auth.HashSessionToken(cookie.Value))
 	}
 
@@ -131,15 +112,26 @@ func (h *AdminHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
 }
 
+// GET /admin
+func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
+	shows, err := h.adminService.ListAllShows(r.Context())
+	if err != nil {
+		http.Error(w, "error loading shows", http.StatusInternalServerError)
+		return
+	}
+
+	adminpages.Dashboard(shows).Render(r.Context(), w)
+}
+
 // GET /admin/shows/new
 func (h *AdminHandler) NewShowForm(w http.ResponseWriter, r *http.Request) {
-	venues, err := h.queries.ListVenues(r.Context())
+	venues, err := h.adminService.ListVenues(r.Context())
 	if err != nil {
 		http.Error(w, "error loading venues", http.StatusInternalServerError)
 		return
 	}
 
-	bands, err := h.queries.ListBands(r.Context())
+	bands, err := h.adminService.ListBands(r.Context())
 	if err != nil {
 		http.Error(w, "error loading bands", http.StatusInternalServerError)
 		return
@@ -154,55 +146,36 @@ func (h *AdminHandler) CreateShow(w http.ResponseWriter, r *http.Request) {
 	dateStr := r.FormValue("date")
 
 	if title == "" || dateStr == "" {
-		h.reloadShowForm(w, r, "title, slug, and date are required")
+		h.reloadShowForm(w, r, "title and date are required.")
 		return
 	}
 
 	date, err := time.Parse(timeutil.DateTimeLocal, dateStr)
 	if err != nil {
-		h.reloadShowForm(w, r, "invalid date format")
+		h.reloadShowForm(w, r, "invalid date format.")
 		return
 	}
 
 	venueID := r.FormValue("venue_id")
-	var nullVenueId uuid.NullUUID
+	var nullVenueID uuid.NullUUID
 	if venueID != "" {
 		id, err := uuid.Parse(venueID)
 		if err == nil {
-			nullVenueId = uuid.NullUUID{UUID: id, Valid: true}
+			nullVenueID = uuid.NullUUID{UUID: id, Valid: true}
 		}
 	}
 
-	slug := slugify(title, date)
-
-	show, err := h.queries.CreateShow(r.Context(), db.CreateShowParams{
+	err = h.adminService.CreateShow(r.Context(), db.CreateShowParams{
 		Title:       title,
-		Slug:        slug,
+		Slug:        h.adminService.GenerateSlug(title, date),
 		Date:        date,
-		VenueID:     nullVenueId,
+		VenueID:     nullVenueID,
 		Description: sql.NullString{String: r.FormValue("description"), Valid: r.FormValue("description") != ""},
 		TicketUrl:   sql.NullString{String: r.FormValue("ticket_url"), Valid: r.FormValue("ticket_url") != ""},
-	})
+	}, r.Form["band_ids"], r.FormValue("headliner_id"))
 	if err != nil {
-		h.reloadShowForm(w, r, "something went wrong, please try again")
-	}
-
-	headlinerId := r.FormValue("headliner_id")
-	bandIDs := r.Form["band_ids"]
-
-	for i, bandIDstr := range bandIDs {
-		bandID, err := uuid.Parse(bandIDstr)
-		if err != nil {
-			continue
-		}
-
-		isHeadliner := bandIDstr == headlinerId
-		h.queries.AddBandToShow(r.Context(), db.AddBandToShowParams{
-			ShowID:       show.ID,
-			BandID:       bandID,
-			BillingOrder: int32(i),
-			IsHeadliner:  isHeadliner,
-		})
+		h.reloadShowForm(w, r, "something went wrong, please try again.")
+		return
 	}
 
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)
@@ -210,24 +183,16 @@ func (h *AdminHandler) CreateShow(w http.ResponseWriter, r *http.Request) {
 
 // POST /admin/shows/{id}/publish
 func (h *AdminHandler) PublishShow(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		http.Error(w, "error publishing show", http.StatusInternalServerError)
+		http.Error(w, "invalid show id", http.StatusBadRequest)
 		return
 	}
 
-	_, err = h.queries.PublishShow(r.Context(), id)
-	if err != nil {
+	if err := h.adminService.PublishShow(r.Context(), id); err != nil {
 		http.Error(w, "error publishing show", http.StatusInternalServerError)
 		return
 	}
-
-	h.queries.CreateNotificationsForShow(r.Context(), db.CreateNotificationsForShowParams{
-		ShowID: uuid.NullUUID{UUID: id, Valid: true},
-		Type:   "published",
-	})
 
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 }
@@ -241,17 +206,18 @@ func (h *AdminHandler) NewBandForm(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) CreateBand(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	if name == "" {
-		adminpages.BandForm("band name is required").Render(r.Context(), w)
+		adminpages.BandForm("band name is required.").Render(r.Context(), w)
+		return
 	}
 
-	_, err := h.queries.CreateBand(r.Context(), db.CreateBandParams{
+	err := h.adminService.CreateBand(r.Context(), db.CreateBandParams{
 		Name:        name,
 		Genre:       sql.NullString{String: r.FormValue("genre"), Valid: r.FormValue("genre") != ""},
 		Description: sql.NullString{String: r.FormValue("description"), Valid: r.FormValue("description") != ""},
 		WebsiteUrl:  sql.NullString{String: r.FormValue("website_url"), Valid: r.FormValue("website_url") != ""},
 	})
 	if err != nil {
-		adminpages.BandForm("something went wrong, please try again").Render(r.Context(), w)
+		adminpages.BandForm("something went wrong, please try again.").Render(r.Context(), w)
 		return
 	}
 
@@ -267,7 +233,7 @@ func (h *AdminHandler) NewVenueForm(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) CreateVenue(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	if name == "" {
-		adminpages.VenueForm("venue page is required").Render(r.Context(), w)
+		adminpages.VenueForm("venue name is required.").Render(r.Context(), w)
 		return
 	}
 
@@ -280,7 +246,7 @@ func (h *AdminHandler) CreateVenue(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	_, err := h.queries.CreateVenue(r.Context(), db.CreateVenueParams{
+	err := h.adminService.CreateVenue(r.Context(), db.CreateVenueParams{
 		Name:     name,
 		Address:  sql.NullString{String: r.FormValue("address"), Valid: r.FormValue("address") != ""},
 		City:     sql.NullString{String: r.FormValue("city"), Valid: r.FormValue("city") != ""},
@@ -295,31 +261,9 @@ func (h *AdminHandler) CreateVenue(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 }
 
+// helper to reload show form with error
 func (h *AdminHandler) reloadShowForm(w http.ResponseWriter, r *http.Request, errMsg string) {
-	venues, _ := h.queries.ListVenues(r.Context())
-	bands, _ := h.queries.ListBands(r.Context())
+	venues, _ := h.adminService.ListVenues(r.Context())
+	bands, _ := h.adminService.ListBands(r.Context())
 	adminpages.ShowForm(venues, bands, errMsg).Render(r.Context(), w)
-}
-
-func slugify(title string, date time.Time) string {
-	s := strings.ToLower(title + " " + date.Format(timeutil.SlugDate))
-
-	var result strings.Builder
-	for _, r := range s {
-		switch {
-		case r >= 'a' && r <= 'z':
-			result.WriteRune(r)
-		case r >= '0' && r <= '9':
-			result.WriteRune(r)
-		case r == ' ' || r == '-' || r == '_':
-			result.WriteRune('-')
-		}
-	}
-
-	slug := result.String()
-	for strings.Contains(slug, "--") {
-		slug = strings.ReplaceAll(slug, "--", "-")
-	}
-
-	return strings.Trim(slug, "-")
 }

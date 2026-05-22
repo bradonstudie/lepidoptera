@@ -12,6 +12,7 @@ import (
 	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
 	"github.com/lepidoptera/lepidoptera/internal/handlers"
 	"github.com/lepidoptera/lepidoptera/internal/mailer"
+	"github.com/lepidoptera/lepidoptera/internal/service"
 )
 
 type Server struct {
@@ -27,7 +28,17 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 
 	sqlDB := stdlib.OpenDBFromPool(pool)
 	queries := db.New(sqlDB)
+
+	// services
+	showService := service.NewShowService(queries)
+	subscriberService := service.NewSubscriberService(queries, m, tokenSecret)
+	adminService := service.NewAdminService(queries, m)
+
+	// worker
 	worker := mailer.NewWorker(m, queries, tokenSecret)
+
+	// middleware
+	adminMiddleware := handlers.NewAdminMiddleware(queries)
 
 	s := &Server{
 		router: chi.NewRouter(),
@@ -37,17 +48,13 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 	s.router.Use(middleware.Logger)
 	s.router.Use(middleware.Recoverer)
 
-	// static files
 	s.router.Handle("/static/*", http.StripPrefix("/static/",
 		http.FileServer(http.Dir("web/static"))))
 
 	// handlers
-	shows := handlers.NewShowHandler(queries)
-	subs := handlers.NewSubscriberHandler(queries, m, tokenSecret)
-	admin := handlers.NewAdminHandler(queries, m, tokenSecret)
-
-	// middleware
-	adminMiddleware := handlers.NewAdminMiddleware(queries)
+	shows := handlers.NewShowHandler(showService)
+	subs := handlers.NewSubscriberHandler(subscriberService)
+	admin := handlers.NewAdminHandler(adminService, queries, tokenSecret)
 
 	// public routes
 	s.router.Get("/", shows.Index)
@@ -57,14 +64,15 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 	s.router.Get("/confirm", subs.Confirm)
 	s.router.Get("/unsubscribe", subs.Unsubscribe)
 
+	// admin auth — public
 	s.router.Get("/admin/login", admin.LoginPage)
 	s.router.Post("/admin/login", admin.Login)
-	s.router.Post("/admin/logout", admin.Logout)
 	s.router.Get("/admin/verify", admin.Verify)
 
-	// admin routes
+	// admin routes — protected
 	s.router.Group(func(r chi.Router) {
 		r.Use(adminMiddleware.AdminOnly)
+		r.Post("/admin/logout", admin.Logout)
 		r.Get("/admin", admin.Dashboard)
 		r.Get("/admin/shows/new", admin.NewShowForm)
 		r.Post("/admin/shows", admin.CreateShow)
