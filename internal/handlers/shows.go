@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -22,7 +23,7 @@ func (h *ShowHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	shows, err := h.showService.ListPublishedShows(r.Context(), genre)
 	if err != nil {
-		http.Error(w, "error loading shows", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -33,7 +34,7 @@ func (h *ShowHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	genres, err := h.showService.ListGenres(r.Context())
 	if err != nil {
-		http.Error(w, "error loading genres", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -44,8 +45,12 @@ func (h *ShowHandler) Detail(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
 	show, err := h.showService.GetShowDetail(r.Context(), slug)
+	if errors.Is(err, service.ErrShowNotFound) {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 	if err != nil {
-		http.Error(w, "show not found", http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

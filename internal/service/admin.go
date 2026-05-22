@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -25,7 +24,7 @@ func NewAdminService(queries *db.Queries, m mailer.Mailer) *AdminService {
 func (s *AdminService) ListAllShows(ctx context.Context) ([]viewmodels.AdminShowViewModel, error) {
 	rows, err := s.queries.ListAllShows(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("ListAllShows: %w", err)
+		return nil, ErrInternalError
 	}
 
 	return viewmodels.NewAdminShowViewModels(rows), nil
@@ -34,7 +33,7 @@ func (s *AdminService) ListAllShows(ctx context.Context) ([]viewmodels.AdminShow
 func (s *AdminService) ListVenues(ctx context.Context) ([]db.Venue, error) {
 	venues, err := s.queries.ListVenues(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("ListVenues: %w", err)
+		return nil, ErrInternalError
 	}
 
 	return venues, nil
@@ -43,7 +42,7 @@ func (s *AdminService) ListVenues(ctx context.Context) ([]db.Venue, error) {
 func (s *AdminService) ListBands(ctx context.Context) ([]db.Band, error) {
 	bands, err := s.queries.ListBands(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("ListBands: %w", err)
+		return nil, ErrInternalError
 	}
 
 	return bands, nil
@@ -52,7 +51,7 @@ func (s *AdminService) ListBands(ctx context.Context) ([]db.Band, error) {
 func (s *AdminService) CreateVenue(ctx context.Context, params db.CreateVenueParams) error {
 	_, err := s.queries.CreateVenue(ctx, params)
 	if err != nil {
-		return fmt.Errorf("CreateVenue: %w", err)
+		return ErrInternalError
 	}
 
 	return nil
@@ -61,7 +60,7 @@ func (s *AdminService) CreateVenue(ctx context.Context, params db.CreateVenuePar
 func (s *AdminService) CreateBand(ctx context.Context, params db.CreateBandParams) error {
 	_, err := s.queries.CreateBand(ctx, params)
 	if err != nil {
-		return fmt.Errorf("CreateBand: %w", err)
+		return ErrInternalError
 	}
 
 	return nil
@@ -70,7 +69,7 @@ func (s *AdminService) CreateBand(ctx context.Context, params db.CreateBandParam
 func (s *AdminService) CreateShow(ctx context.Context, params db.CreateShowParams, bandIDs []string, headlinerID string) error {
 	show, err := s.queries.CreateShow(ctx, params)
 	if err != nil {
-		return fmt.Errorf("CreateShow: %w", err)
+		return ErrInternalError
 	}
 
 	for i, bandIDStr := range bandIDs {
@@ -93,7 +92,7 @@ func (s *AdminService) CreateShow(ctx context.Context, params db.CreateShowParam
 func (s *AdminService) PublishShow(ctx context.Context, id uuid.UUID) error {
 	show, err := s.queries.PublishShow(ctx, id)
 	if err != nil {
-		return fmt.Errorf("PublishShow: %w", err)
+		return ErrShowNotFound
 	}
 
 	err = s.queries.CreateNotificationsForShow(ctx, db.CreateNotificationsForShowParams{
@@ -101,7 +100,7 @@ func (s *AdminService) PublishShow(ctx context.Context, id uuid.UUID) error {
 		Type:   "published",
 	})
 	if err != nil {
-		return fmt.Errorf("PublishShow notifications: %w", err)
+		return ErrInternalError
 	}
 
 	return nil

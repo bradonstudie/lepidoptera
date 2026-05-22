@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
 	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
@@ -23,7 +22,7 @@ func (s *ShowService) ListPublishedShows(ctx context.Context, genre string) ([]v
 		Valid:  genre != "",
 	})
 	if err != nil {
-		return nil, fmt.Errorf("ListPublishedShows: %w", err)
+		return nil, ErrInternalError
 	}
 
 	return viewmodels.NewShowListViewModels(rows), nil
@@ -32,12 +31,12 @@ func (s *ShowService) ListPublishedShows(ctx context.Context, genre string) ([]v
 func (s *ShowService) GetShowDetail(ctx context.Context, slug string) (viewmodels.ShowDetailViewModel, error) {
 	row, err := s.queries.GetShowBySlug(ctx, slug)
 	if err != nil {
-		return viewmodels.ShowDetailViewModel{}, fmt.Errorf("GetShowDetail: %w", err)
+		return viewmodels.ShowDetailViewModel{}, ErrShowNotFound
 	}
 
 	bands, err := s.queries.GetBandsByShow(ctx, row.ID)
 	if err != nil {
-		return viewmodels.ShowDetailViewModel{}, fmt.Errorf("GetShowDetail bands: %w", err)
+		return viewmodels.ShowDetailViewModel{}, ErrInternalError
 	}
 
 	return viewmodels.NewShowDetailViewModel(row, bands), nil
@@ -46,7 +45,7 @@ func (s *ShowService) GetShowDetail(ctx context.Context, slug string) (viewmodel
 func (s *ShowService) ListGenres(ctx context.Context) ([]string, error) {
 	rows, err := s.queries.ListGenres(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("ListGenres: %w", err)
+		return nil, ErrInternalError
 	}
 
 	genres := make([]string, 0, len(rows))

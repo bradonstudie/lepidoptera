@@ -2,15 +2,11 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
 	"github.com/lepidoptera/lepidoptera/internal/mailer"
 )
-
-var ErrInvalidToken = errors.New("invalid or expired token")
-var ErrAlreadySubscribed = errors.New("already subscribed")
 
 type SubscriberService struct {
 	queries *db.Queries

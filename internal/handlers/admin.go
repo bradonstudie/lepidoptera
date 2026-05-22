@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -55,7 +56,7 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 
 	email, err := auth.ValidateLoginToken(token, h.secret)
 	if err != nil {
-		http.Error(w, "invalid or expired login link", http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -66,7 +67,7 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 
 	sessionToken, err := auth.GenerateSessionToken()
 	if err != nil {
-		http.Error(w, "error creating session", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -75,7 +76,7 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
 	})
 	if err != nil {
-		http.Error(w, "error creating session", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -116,7 +117,7 @@ func (h *AdminHandler) Logout(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	shows, err := h.adminService.ListAllShows(r.Context())
 	if err != nil {
-		http.Error(w, "error loading shows", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -127,13 +128,13 @@ func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) NewShowForm(w http.ResponseWriter, r *http.Request) {
 	venues, err := h.adminService.ListVenues(r.Context())
 	if err != nil {
-		http.Error(w, "error loading venues", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	bands, err := h.adminService.ListBands(r.Context())
 	if err != nil {
-		http.Error(w, "error loading bands", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -185,12 +186,17 @@ func (h *AdminHandler) CreateShow(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) PublishShow(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		http.Error(w, "invalid show id", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if err := h.adminService.PublishShow(r.Context(), id); err != nil {
-		http.Error(w, "error publishing show", http.StatusInternalServerError)
+		switch {
+		case errors.Is(err, service.ErrShowNotFound):
+			http.Error(w, err.Error(), http.StatusNotFound)
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -217,7 +223,7 @@ func (h *AdminHandler) CreateBand(w http.ResponseWriter, r *http.Request) {
 		WebsiteUrl:  sql.NullString{String: r.FormValue("website_url"), Valid: r.FormValue("website_url") != ""},
 	})
 	if err != nil {
-		adminpages.BandForm("something went wrong, please try again.").Render(r.Context(), w)
+		adminpages.BandForm(err.Error()).Render(r.Context(), w)
 		return
 	}
 
@@ -254,7 +260,7 @@ func (h *AdminHandler) CreateVenue(w http.ResponseWriter, r *http.Request) {
 		Capacity: nullCapacity,
 	})
 	if err != nil {
-		adminpages.VenueForm("something went wrong, please try again.").Render(r.Context(), w)
+		adminpages.VenueForm(err.Error()).Render(r.Context(), w)
 		return
 	}
 

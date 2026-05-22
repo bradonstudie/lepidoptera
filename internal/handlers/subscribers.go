@@ -31,11 +31,11 @@ func (h *SubscriberHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 	err := h.subscriberService.Subscribe(r.Context(), email)
 	if errors.Is(err, service.ErrAlreadySubscribed) {
-		components.Flash("you're already on the list.", false).Render(r.Context(), w)
+		components.Flash(err.Error(), false).Render(r.Context(), w)
 		return
 	}
 	if err != nil {
-		components.Flash("something went wrong, please try again.", true).Render(r.Context(), w)
+		components.Flash(err.Error(), true).Render(r.Context(), w)
 		return
 	}
 
@@ -48,11 +48,11 @@ func (h *SubscriberHandler) Confirm(w http.ResponseWriter, r *http.Request) {
 
 	err := h.subscriberService.Confirm(r.Context(), token)
 	if errors.Is(err, service.ErrInvalidToken) {
-		http.Error(w, "invalid or expired confirmation link.", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if err != nil {
-		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -65,11 +65,11 @@ func (h *SubscriberHandler) Unsubscribe(w http.ResponseWriter, r *http.Request) 
 
 	err := h.subscriberService.Unsubscribe(r.Context(), token)
 	if errors.Is(err, service.ErrInvalidToken) {
-		http.Error(w, "invalid unsubscribe link.", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if err != nil {
-		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
