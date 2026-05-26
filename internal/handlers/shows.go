@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/bradonstudie/lepidoptera/internal/service"
+	"github.com/bradonstudie/lepidoptera/web/components"
+	"github.com/bradonstudie/lepidoptera/web/pages"
 	"github.com/go-chi/chi/v5"
-	"github.com/lepidoptera/lepidoptera/internal/service"
-	"github.com/lepidoptera/lepidoptera/web/components"
-	"github.com/lepidoptera/lepidoptera/web/pages"
 )
 
 type ShowHandler struct {

@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
-	"github.com/lepidoptera/lepidoptera/web/layouts"
+	"github.com/bradonstudie/lepidoptera/internal/viewmodels"
+	"github.com/bradonstudie/lepidoptera/web/layouts"
 )
 
 func Dashboard(shows []viewmodels.AdminShowViewModel) templ.Component {

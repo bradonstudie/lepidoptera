@@ -1,4 +1,4 @@
-module github.com/lepidoptera/lepidoptera
+module github.com/bradonstudie/lepidoptera
 
 go 1.25.0
 

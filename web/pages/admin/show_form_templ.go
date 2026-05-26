@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
-	"github.com/lepidoptera/lepidoptera/web/layouts"
+	db "github.com/bradonstudie/lepidoptera/internal/db/generated"
+	"github.com/bradonstudie/lepidoptera/web/layouts"
 )
 
 func ShowForm(venues []db.Venue, bands []db.Band, err string) templ.Component {

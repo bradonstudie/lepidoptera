@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
+	db "github.com/bradonstudie/lepidoptera/internal/db/generated"
+	"github.com/bradonstudie/lepidoptera/internal/mailer"
+	"github.com/bradonstudie/lepidoptera/internal/timeutil"
+	"github.com/bradonstudie/lepidoptera/internal/viewmodels"
 	"github.com/google/uuid"
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
-	"github.com/lepidoptera/lepidoptera/internal/mailer"
-	"github.com/lepidoptera/lepidoptera/internal/timeutil"
-	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
 )
 
 type AdminService struct {

@@ -3,8 +3,8 @@ package viewmodels
 import (
 	"fmt"
 
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
-	"github.com/lepidoptera/lepidoptera/internal/timeutil"
+	db "github.com/bradonstudie/lepidoptera/internal/db/generated"
+	"github.com/bradonstudie/lepidoptera/internal/timeutil"
 )
 
 type ShowListViewModel struct {

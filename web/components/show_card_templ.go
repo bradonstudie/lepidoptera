@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/lepidoptera/lepidoptera/internal/viewmodels"
+import "github.com/bradonstudie/lepidoptera/internal/viewmodels"
 
 func ShowCard(show viewmodels.ShowListViewModel) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {

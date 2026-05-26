@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/bradonstudie/lepidoptera/internal/mailer"
+	"github.com/bradonstudie/lepidoptera/internal/server"
 	"github.com/joho/godotenv"
-	"github.com/lepidoptera/lepidoptera/internal/mailer"
-	"github.com/lepidoptera/lepidoptera/internal/server"
 )
 
 func main() {

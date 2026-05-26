@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/lepidoptera/lepidoptera/internal/service"
-	"github.com/lepidoptera/lepidoptera/web/components"
-	"github.com/lepidoptera/lepidoptera/web/pages"
+	"github.com/bradonstudie/lepidoptera/internal/service"
+	"github.com/bradonstudie/lepidoptera/web/components"
+	"github.com/bradonstudie/lepidoptera/web/pages"
 )
 
 type SubscriberHandler struct {

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+	db "github.com/bradonstudie/lepidoptera/internal/db/generated"
 )
 
 type Worker struct {

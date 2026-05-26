@@ -9,10 +9,11 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
-	"github.com/lepidoptera/lepidoptera/internal/handlers"
-	"github.com/lepidoptera/lepidoptera/internal/mailer"
-	"github.com/lepidoptera/lepidoptera/internal/service"
+
+	db "github.com/bradonstudie/lepidoptera/internal/db/generated"
+	"github.com/bradonstudie/lepidoptera/internal/handlers"
+	"github.com/bradonstudie/lepidoptera/internal/mailer"
+	"github.com/bradonstudie/lepidoptera/internal/service"
 )
 
 type Server struct {

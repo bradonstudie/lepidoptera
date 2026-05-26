@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/lepidoptera/lepidoptera/internal/timeutil"
+	"github.com/bradonstudie/lepidoptera/internal/timeutil"
 )
 
 const baseURL = "https://lepidoptera.com"

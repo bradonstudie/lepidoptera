@@ -1,6 +1,6 @@
 package viewmodels
 
-import db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+import db "github.com/bradonstudie/lepidoptera/internal/db/generated"
 
 type BandViewModel struct {
 	ID          string

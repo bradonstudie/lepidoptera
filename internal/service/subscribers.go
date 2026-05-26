@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
-	"github.com/lepidoptera/lepidoptera/internal/mailer"
+	db "github.com/bradonstudie/lepidoptera/internal/db/generated"
+	"github.com/bradonstudie/lepidoptera/internal/mailer"
 )
 
 type SubscriberService struct {

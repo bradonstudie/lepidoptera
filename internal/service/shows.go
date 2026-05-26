@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
-	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
+	db "github.com/bradonstudie/lepidoptera/internal/db/generated"
+	"github.com/bradonstudie/lepidoptera/internal/viewmodels"
 )
 
 type ShowService struct {

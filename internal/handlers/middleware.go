@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/lepidoptera/lepidoptera/internal/auth"
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
+	"github.com/bradonstudie/lepidoptera/internal/auth"
+	db "github.com/bradonstudie/lepidoptera/internal/db/generated"
 )
 
 type AdminMiddleware struct {

@@ -9,9 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/lepidoptera/lepidoptera/internal/viewmodels"
-	"github.com/lepidoptera/lepidoptera/web/components"
-	"github.com/lepidoptera/lepidoptera/web/layouts"
+	"github.com/bradonstudie/lepidoptera/internal/viewmodels"
+	"github.com/bradonstudie/lepidoptera/web/components"
+	"github.com/bradonstudie/lepidoptera/web/layouts"
 )
 
 func Index(shows []viewmodels.ShowListViewModel, genres []string) templ.Component {

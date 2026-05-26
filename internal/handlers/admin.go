@@ -9,14 +9,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/bradonstudie/lepidoptera/internal/auth"
+	db "github.com/bradonstudie/lepidoptera/internal/db/generated"
+	"github.com/bradonstudie/lepidoptera/internal/mailer"
+	"github.com/bradonstudie/lepidoptera/internal/service"
+	"github.com/bradonstudie/lepidoptera/internal/timeutil"
+	adminpages "github.com/bradonstudie/lepidoptera/web/pages/admin"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/lepidoptera/lepidoptera/internal/auth"
-	db "github.com/lepidoptera/lepidoptera/internal/db/generated"
-	"github.com/lepidoptera/lepidoptera/internal/mailer"
-	"github.com/lepidoptera/lepidoptera/internal/service"
-	"github.com/lepidoptera/lepidoptera/internal/timeutil"
-	adminpages "github.com/lepidoptera/lepidoptera/web/pages/admin"
 )
 
 type AdminHandler struct {
