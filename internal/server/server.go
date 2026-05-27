@@ -55,7 +55,19 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 		10*time.Second,
 		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
 	))
+
+	// Login rate limiters
+	// SEE: https://github.com/go-chi/httprate
 	loginRateLimit := httprate.Limit(5, time.Minute, httprate.WithKeyFuncs(httprate.KeyByIP))
+	loginEmailRateLimit := httprate.Limit(3, 10*time.Minute, httprate.WithKeyFuncs(
+		func(r *http.Request) (string, error) {
+			r.ParseForm()
+			if email := r.FormValue("email"); email != "" {
+				return "login:email:" + email, nil
+			}
+			return httprate.KeyByIP(r)
+		},
+	))
 
 	s.router.Handle("/static/*", http.StripPrefix("/static/",
 		http.FileServer(http.Dir("web/static"))))
@@ -75,7 +87,7 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 
 	// admin auth — public
 	s.router.Get("/admin/login", admin.LoginPage)
-	s.router.With(loginRateLimit).Post("/admin/login", admin.Login)
+	s.router.With(loginRateLimit, loginEmailRateLimit).Post("/admin/login", admin.Login)
 	s.router.Get("/admin/verify", admin.Verify)
 
 	// admin routes — protected
