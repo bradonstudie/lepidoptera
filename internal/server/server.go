@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 
@@ -48,6 +50,12 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 
 	s.router.Use(middleware.Logger)
 	s.router.Use(middleware.Recoverer)
+	s.router.Use(httprate.Limit(
+		10,
+		10*time.Second,
+		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
+	))
+	loginRateLimit := httprate.Limit(5, time.Minute, httprate.WithKeyFuncs(httprate.KeyByIP))
 
 	s.router.Handle("/static/*", http.StripPrefix("/static/",
 		http.FileServer(http.Dir("web/static"))))
@@ -67,7 +75,7 @@ func New(dbURL string, m mailer.Mailer, tokenSecret string) (*Server, error) {
 
 	// admin auth — public
 	s.router.Get("/admin/login", admin.LoginPage)
-	s.router.Post("/admin/login", admin.Login)
+	s.router.With(loginRateLimit).Post("/admin/login", admin.Login)
 	s.router.Get("/admin/verify", admin.Verify)
 
 	// admin routes — protected

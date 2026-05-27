@@ -16,7 +16,7 @@ func GenerateSessionToken() (string, error) {
 }
 
 // HashSessionToken hashes the token for storage
-// we store the hash, give the raw token to the client
+// Store the hash- then give the raw token to the client
 func HashSessionToken(token string) string {
 	h := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(h[:])
