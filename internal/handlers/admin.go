@@ -69,8 +69,11 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = h.queries.MarkLoginTokenUsed(r.Context(), auth.HashSessionToken(token))
-	if err != nil {
+	if err == sql.ErrNoRows {
 		http.Error(w, "token already used", http.StatusUnauthorized)
+		return
+	} else if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -106,7 +109,9 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("admin_session")
 	if err == nil {
-		h.queries.RevokeAdminSession(r.Context(), auth.HashSessionToken(cookie.Value))
+		if err := h.queries.RevokeAdminSession(r.Context(), auth.HashSessionToken(cookie.Value)); err != nil {
+			log.Printf("failed to revoke admin session: %v", err)
+		}
 	}
 
 	http.SetCookie(w, &http.Cookie{
