@@ -68,6 +68,12 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err = h.queries.MarkLoginTokenUsed(r.Context(), auth.HashSessionToken(token))
+	if err != nil {
+		http.Error(w, "token already used", http.StatusUnauthorized)
+		return
+	}
+
 	sessionToken, err := auth.GenerateSessionToken()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,7 +95,7 @@ func (h *AdminHandler) Verify(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   os.Getenv("ENV") == "production",
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteStrictMode,
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 	})
 
@@ -109,7 +115,7 @@ func (h *AdminHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   os.Getenv("ENV") == "production",
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteStrictMode,
 		MaxAge:   -1,
 	})
 
