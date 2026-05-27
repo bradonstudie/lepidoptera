@@ -43,6 +43,13 @@ func (w *Worker) run(ctx context.Context) {
 	if err := w.sendPendingReminders(ctx); err != nil {
 		log.Printf("worker: reminders error: %v", err)
 	}
+
+	if err := w.queries.DeleteExpiredSessions(ctx); err != nil {
+		log.Printf("worker: session cleanup error: %v", err)
+	}
+	if err := w.queries.DeleteUsedLoginTokens(ctx); err != nil {
+		log.Printf("worker: login token cleanup error: %v", err)
+	}
 }
 
 func (w *Worker) sendPendingAnnouncements(ctx context.Context) error {
