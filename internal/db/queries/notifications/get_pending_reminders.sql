@@ -12,5 +12,6 @@ WHERE n.type = 'reminder'
   AND n.sent_at IS NULL
   AND sh.date::date = (NOW() + interval '1 day')::date
   AND s.unsubscribed_at IS NULL
-  AND s.deleted_at IS NULL;
+  AND s.deleted_at IS NULL
+LIMIT $1;
   

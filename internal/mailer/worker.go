@@ -14,8 +14,8 @@ type Worker struct {
 	secret  string
 }
 
-func NewWorker(m Mailer, queries *db.Queries, secret string) *Worker {
-	return &Worker{mailer: m, queries: queries, secret: secret}
+func NewWorker(mailer Mailer, queries *db.Queries, secret string) *Worker {
+	return &Worker{mailer: mailer, queries: queries, secret: secret}
 }
 
 func (w *Worker) Start(ctx context.Context) {
@@ -52,66 +52,66 @@ func (w *Worker) run(ctx context.Context) {
 	}
 }
 
+const notificationBatchSize = 500
+
 func (w *Worker) sendPendingAnnouncements(ctx context.Context) error {
-	pending, err := w.queries.GetPendingAnnouncementNotifications(ctx)
-	if err != nil {
-		return err
-	}
-
-	if len(pending) == 0 {
-		return nil
-	}
-
-	log.Printf("worker: sending %d announcement(s)", len(pending))
-
-	for _, n := range pending {
-		if err := w.sendAnnouncement(ctx, n); err != nil {
-			log.Printf("worker: failed announcement to %s: %v", n.SubscriberEmail, err)
-			continue
+	for {
+		pending, err := w.queries.GetPendingAnnouncementNotifications(ctx, notificationBatchSize)
+		if err != nil {
+			return err
+		}
+		if len(pending) == 0 {
+			return nil
 		}
 
-		if err := w.queries.MarkNotificationSent(ctx, n.ID); err != nil {
-			log.Printf("worker: failed to mark notification sent %s: %v", n.ID, err)
+		log.Printf("worker: sending %d announcement(s)", len(pending))
+
+		for _, n := range pending {
+			if err := w.sendAnnouncement(ctx, n); err != nil {
+				log.Printf("worker: failed announcement to %s: %v", n.SubscriberEmail, err)
+				continue
+			}
+			if err := w.queries.MarkNotificationSent(ctx, n.ID); err != nil {
+				log.Printf("worker: failed to mark notification sent %s: %v", n.ID, err)
+			}
+		}
+
+		if len(pending) < notificationBatchSize {
+			return nil
 		}
 	}
-
-	return nil
 }
 
 func (w *Worker) sendPendingReminders(ctx context.Context) error {
-	pending, err := w.queries.GetPendingReminderNotifications(ctx)
-	if err != nil {
-		return err
-	}
-
-	if len(pending) == 0 {
-		return nil
-	}
-
-	log.Printf("worker: sending %d reminder(s)", len(pending))
-
-	for _, n := range pending {
-		if err := w.sendReminder(ctx, n); err != nil {
-			log.Printf("worker: failed reminder to %s: %v", n.SubscriberEmail, err)
-			continue
+	for {
+		pending, err := w.queries.GetPendingReminderNotifications(ctx, notificationBatchSize)
+		if err != nil {
+			return err
+		}
+		if len(pending) == 0 {
+			return nil
 		}
 
-		if err := w.queries.MarkNotificationSent(ctx, n.ID); err != nil {
-			log.Printf("worker: failed to mark notification sent %s: %v", n.ID, err)
+		log.Printf("worker: sending %d reminder(s)", len(pending))
+
+		for _, n := range pending {
+			if err := w.sendReminder(ctx, n); err != nil {
+				log.Printf("worker: failed reminder to %s: %v", n.SubscriberEmail, err)
+				continue
+			}
+			if err := w.queries.MarkNotificationSent(ctx, n.ID); err != nil {
+				log.Printf("worker: failed to mark notification sent %s: %v", n.ID, err)
+			}
+		}
+
+		if len(pending) < notificationBatchSize {
+			return nil
 		}
 	}
-
-	return nil
 }
 
 func (w *Worker) sendAnnouncement(ctx context.Context, n db.GetPendingAnnouncementNotificationsRow) error {
-	// get subscriber for unsubscribe token
-	sub, err := w.queries.GetSubscriberByID(ctx, n.SubscriberID.UUID)
-	if err != nil {
-		return err
-	}
-
-	unsubToken := UnsubscribeToken(sub.ID, w.secret)
+	unsubToken := UnsubscribeToken(n.SubscriberID.UUID, w.secret)
 
 	email := ShowAnnouncedEmail(ShowEmailData{
 		Title:       n.Title,
@@ -127,12 +127,7 @@ func (w *Worker) sendAnnouncement(ctx context.Context, n db.GetPendingAnnounceme
 }
 
 func (w *Worker) sendReminder(ctx context.Context, n db.GetPendingReminderNotificationsRow) error {
-	sub, err := w.queries.GetSubscriberByID(ctx, n.SubscriberID.UUID)
-	if err != nil {
-		return err
-	}
-
-	unsubToken := UnsubscribeToken(sub.ID, w.secret)
+	unsubToken := UnsubscribeToken(n.SubscriberID.UUID, w.secret)
 
 	email := ReminderEmail(ShowEmailData{
 		Title:     n.Title,

@@ -8,10 +8,8 @@ func AdminLoginEmail(token string) Email {
 		Body: fmt.Sprintf(`your login link:
 			%s/admin/verify?token=%s
 
-			this link expires in 15 minutes.
-			if you didn't request this, ignore it.
-
-			---
-			lepidoptera`, baseURL, token),
+			This link expires in 15 minutes.
+			If you didn't request this, it's probably time to go check the logs.
+			`, baseURL, token),
 	}
 }

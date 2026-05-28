@@ -11,5 +11,6 @@ LEFT JOIN venues v ON v.id = sh.venue_id
 WHERE n.type = 'published'
   AND n.sent_at IS NULL
   AND s.unsubscribed_at IS NULL
-  AND s.deleted_at IS NULL;
+  AND s.deleted_at IS NULL
+LIMIT $1;
   

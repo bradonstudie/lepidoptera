@@ -39,7 +39,7 @@ func (h *AdminHandler) Login(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	adminEmail := os.Getenv("ADMIN_EMAIL")
 
-	message := "if that email is authorized, a login link is on its way."
+	message := "If that email is authorized, a login link is on its way."
 
 	if email == adminEmail {
 		token := auth.GenerateLoginToken(email, h.secret)
