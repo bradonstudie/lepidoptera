@@ -10,5 +10,22 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  app:
+    build:
+      context: .
+      target: dev
+    volumes:
+      - .:/app
+      - go-cache:/root/go/pkg/mod
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/lepidoptera
+
 volumes:
   pgdata:
+  go-cache:
